@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A functional event-sourcing bank account kata in Go">
+  <title>Event Ledger</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="masthead">
+    <div>
+      <p class="kicker">Functional event sourcing in Go</p>
+      <h1>Event Ledger</h1>
+    </div>
+    <p class="masthead-note">Volatile by design. Every balance is rebuilt from events.</p>
+  </header>
+
+  <main class="layout">
+    <section class="panel workspace" aria-label="Bank account workspace">
+      <section id="home-view">
+        <p class="eyebrow">Accounts</p>
+        <h2>Open a ledger</h2>
+        <p class="lede">Choose any account name. The first transaction starts its event stream.</p>
+        <form id="open-form" class="open-form">
+          <label for="account-id">Account name</label>
+          <div class="field-row">
+            <input id="account-id" name="account" autocomplete="off" placeholder="house-project" required disabled>
+            <button id="open-account" class="button primary" type="submit" disabled>Open</button>
+          </div>
+        </form>
+        <div class="rule"></div>
+        <div class="section-heading">
+          <h3>Known accounts</h3>
+          <span id="account-count" class="count">0</span>
+        </div>
+        <div id="accounts" class="account-list"></div>
+      </section>
+
+      <section id="account-view" hidden>
+        <div class="account-heading">
+          <div>
+            <p class="eyebrow">Current account</p>
+            <h2 id="current-account" tabindex="-1"></h2>
+          </div>
+          <div class="account-actions">
+            <button id="switch-account" class="button quiet" type="button">Switch</button>
+            <button id="close-account" class="button danger" type="button">Close account</button>
+          </div>
+        </div>
+
+        <div class="balance-card">
+          <span>Current balance</span>
+          <strong id="current-balance">0.00</strong>
+          <span id="account-status" class="status">Open</span>
+        </div>
+
+        <form id="transaction-form" class="transaction-form">
+          <label for="amount">Transaction amount</label>
+          <div class="field-row">
+            <input id="amount" name="amount" inputmode="decimal" placeholder="25.00" required>
+            <button id="deposit" class="button primary" type="submit">Deposit</button>
+            <button id="withdraw" class="button secondary" type="button">Withdraw</button>
+          </div>
+        </form>
+
+        <div class="rule"></div>
+        <div class="section-heading">
+          <h3>Transactions</h3>
+          <span class="table-note">Newest first</span>
+        </div>
+        <div class="table-wrap" tabindex="0" aria-label="Transactions">
+          <table>
+            <thead><tr><th>Time</th><th>Amount</th><th>Balance</th></tr></thead>
+            <tbody id="transactions"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <aside class="panel event-panel" aria-label="Event commits" tabindex="0">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Source of truth</p>
+          <h2>Event commits</h2>
+        </div>
+        <span id="commit-count" class="count">0</span>
+      </div>
+      <p class="event-note">Each block is one atomic command outcome.</p>
+      <div id="commits" class="commit-list"></div>
+    </aside>
+  </main>
+
+  <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
