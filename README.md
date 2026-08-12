@@ -39,12 +39,22 @@ zero and negative amounts.
 
 ## Architecture
 
-```text
-features/bank/domain/  pure Initial, Evolve, Fold, and Decide functions
-features/bank/app/     in-memory event streams and atomically updated read model
-features/bank/client/  standard-library JSON API and embedded browser application
-cmd/esbank/            executable composition root
+```mermaid
+flowchart LR
+    Client["client<br/>HTTP and browser"] --> App["app<br/>execute and project"]
+    Client --> Domain["domain<br/>decide and evolve"]
+    App --> Domain
+    Main["cmd/esbank"] --> Client
+    Main --> App
 ```
+
+The bank feature is split by responsibility:
+
+- `domain/account.go` defines commands, events, state, and errors.
+- `domain/decider.go` contains the pure decision and evolution functions.
+- `domain/money.go` handles exact decimal amounts and checked arithmetic.
+- `app/store.go` coordinates streams and the read model atomically.
+- `client/` contains the JSON API and embedded browser application.
 
 The application uses `go-functionalish` where the functional model benefits
 from it:
@@ -54,6 +64,51 @@ from it:
 - `seq.Seq` to fold event history into aggregate state
 
 No framework, reflection, database, frontend toolchain, or runtime CDN is required.
+
+## Decider pattern
+
+The domain follows Jeremie Chassaing's
+[Functional Event Sourcing Decider][decider-article] pattern. A decision is a
+pure function of a command and the current state. It returns events on success
+or a domain error on rejection; it does not persist data or perform I/O.
+
+```mermaid
+flowchart LR
+    Command --> Decide
+    State --> Decide
+    Decide -->|accepted| Events
+    Decide -->|rejected| DomainError
+```
+
+`Evolve` is the other pure function. Folding the event history from `Initial`
+reconstructs the current state before each decision.
+
+```mermaid
+flowchart LR
+    Initial --> Fold
+    History["event history"] --> Fold
+    Fold["Fold with Evolve"] --> State["current state"]
+    State --> Decide
+    Command --> Decide
+    Decide --> NewEvents["new events"]
+```
+
+The application layer connects those pure functions to the volatile event
+store and projection:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Store
+    participant Domain
+    Client->>Store: Execute(command)
+    Store->>Domain: Fold(history)
+    Domain-->>Store: current state
+    Store->>Domain: Decide(command, state)
+    Domain-->>Store: events or error
+    Store->>Store: append and project atomically
+    Store-->>Client: account and commit
+```
 
 ## Test
 
@@ -91,3 +146,4 @@ the MIT License. This port retains that copyright notice.
 
 [library]: https://github.com/natalie-o-perret/go-functionalish
 [upstream]: https://github.com/akhansari/EsBankAccount
+[decider-article]: https://thinkbeforecoding.com/post/2021/12/17/functional-event-sourcing-decider
