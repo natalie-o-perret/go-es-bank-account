@@ -4,6 +4,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/natalie-o-perret/go-functionalish/kv"
+	"github.com/natalie-o-perret/go-functionalish/seq"
 )
 
 func TestHostGuard(t *testing.T) {
@@ -17,13 +20,13 @@ func TestHostGuard(t *testing.T) {
 		"ledger:8080":    http.StatusNoContent,
 		"attacker.test":  http.StatusMisdirectedRequest,
 	}
-	for host, want := range tests {
+	kv.Of(tests).ToSeq().Iter(func(test seq.Pair[string, int]) {
 		request := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8080/", nil)
-		request.Host = host
+		request.Host = test.First
 		response := httptest.NewRecorder()
 		hostGuard(next, "ledger:8080").ServeHTTP(response, request)
-		if response.Code != want {
-			t.Errorf("Host %q: got %d, want %d", host, response.Code, want)
+		if response.Code != test.Second {
+			t.Errorf("Host %q: got %d, want %d", test.First, response.Code, test.Second)
 		}
-	}
+	})
 }

@@ -7,6 +7,7 @@ import (
 
 	bank "github.com/natalie-o-perret/go-es-bank-account/features/bank/domain"
 	"github.com/natalie-o-perret/go-functionalish/option"
+	"github.com/natalie-o-perret/go-functionalish/slice"
 )
 
 var testTime = time.Date(2026, 8, 11, 12, 0, 0, 0, time.UTC)
@@ -90,12 +91,12 @@ func TestClosedAccountRejectsEveryCommand(t *testing.T) {
 		bank.Withdraw(100, testTime, option.Some(bank.Money(0))),
 		bank.Close(testTime),
 	}
-	for _, command := range commands {
+	slice.FromSlice(commands).Iter(func(command bank.Command) {
 		decision := bank.Decide(command, state)
 		if !decision.IsErr() || decision.UnwrapErr().Kind != bank.AlreadyClosed {
 			t.Fatalf("command %v did not return AlreadyClosed", command.Type)
 		}
-	}
+	})
 }
 
 func TestStateEvolution(t *testing.T) {
