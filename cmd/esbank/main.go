@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/natalie-o-perret/go-es-bank-account/app"
-	"github.com/natalie-o-perret/go-es-bank-account/web"
+	"github.com/natalie-o-perret/go-es-bank-account/features/bank/app"
+	"github.com/natalie-o-perret/go-es-bank-account/features/bank/client"
 )
 
 func main() {
@@ -18,7 +18,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:              *address,
-		Handler:           hostGuard(web.New(app.NewStore(), time.Now), *address),
+		Handler:           hostGuard(client.New(app.NewStore(), time.Now), *address),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      15 * time.Second,

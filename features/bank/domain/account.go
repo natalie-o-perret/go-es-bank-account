@@ -1,5 +1,5 @@
-// Package bank contains the pure bank-account decider.
-package bank
+// Package domain contains the pure bank-account decider.
+package domain
 
 import (
 	"errors"

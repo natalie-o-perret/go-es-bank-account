@@ -1,5 +1,5 @@
-// Package web exposes the bank-account application over HTTP.
-package web
+// Package client exposes the bank-account application over HTTP.
+package client
 
 import (
 	"embed"
@@ -13,8 +13,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/natalie-o-perret/go-es-bank-account/app"
-	"github.com/natalie-o-perret/go-es-bank-account/bank"
+	"github.com/natalie-o-perret/go-es-bank-account/features/bank/app"
+	bank "github.com/natalie-o-perret/go-es-bank-account/features/bank/domain"
 	"github.com/natalie-o-perret/go-functionalish/option"
 )
 

@@ -1,4 +1,4 @@
-package web_test
+package client_test
 
 import (
 	"bytes"
@@ -10,14 +10,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/natalie-o-perret/go-es-bank-account/app"
-	"github.com/natalie-o-perret/go-es-bank-account/web"
+	"github.com/natalie-o-perret/go-es-bank-account/features/bank/app"
+	"github.com/natalie-o-perret/go-es-bank-account/features/bank/client"
 )
 
 var testTime = time.Date(2026, 8, 11, 12, 0, 0, 0, time.UTC)
 
 func TestWebApplicationAndCommandFlow(t *testing.T) {
-	server := httptest.NewServer(web.New(app.NewStore(), func() time.Time { return testTime }))
+	server := httptest.NewServer(client.New(app.NewStore(), func() time.Time { return testTime }))
 	defer server.Close()
 
 	response, err := http.Get(server.URL + "/")
@@ -54,7 +54,7 @@ func TestWebApplicationAndCommandFlow(t *testing.T) {
 }
 
 func TestCommandValidationAndDomainErrors(t *testing.T) {
-	server := httptest.NewServer(web.New(app.NewStore(), func() time.Time { return testTime }))
+	server := httptest.NewServer(client.New(app.NewStore(), func() time.Time { return testTime }))
 	defer server.Close()
 
 	postCommand(t, server.URL, `{"accountId":"checking","type":"deposit","amount":"0"}`, http.StatusBadRequest)
@@ -66,7 +66,7 @@ func TestCommandValidationAndDomainErrors(t *testing.T) {
 }
 
 func TestCommandRejectsOverflowAndUnsafeInput(t *testing.T) {
-	server := httptest.NewServer(web.New(app.NewStore(), func() time.Time { return testTime }))
+	server := httptest.NewServer(client.New(app.NewStore(), func() time.Time { return testTime }))
 	defer server.Close()
 
 	postCommand(t, server.URL, `{"accountId":"checking","type":"deposit","amount":"92233720368547758.07"}`, http.StatusOK)

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/natalie-o-perret/go-es-bank-account/app"
-	"github.com/natalie-o-perret/go-es-bank-account/bank"
+	"github.com/natalie-o-perret/go-es-bank-account/features/bank/app"
+	bank "github.com/natalie-o-perret/go-es-bank-account/features/bank/domain"
 	"github.com/natalie-o-perret/go-functionalish/option"
 )
 

@@ -40,10 +40,10 @@ zero and negative amounts.
 ## Architecture
 
 ```text
-bank/          pure Initial, Evolve, Fold, and Decide functions
-app/           in-memory event streams and atomically updated read model
-web/           standard-library JSON API and embedded browser application
-cmd/esbank/    executable composition root
+features/bank/domain/  pure Initial, Evolve, Fold, and Decide functions
+features/bank/app/     in-memory event streams and atomically updated read model
+features/bank/client/  standard-library JSON API and embedded browser application
+cmd/esbank/            executable composition root
 ```
 
 The application uses `go-functionalish` where the functional model benefits

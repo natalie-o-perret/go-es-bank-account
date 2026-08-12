@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/natalie-o-perret/go-es-bank-account/bank"
+	bank "github.com/natalie-o-perret/go-es-bank-account/features/bank/domain"
 	"github.com/natalie-o-perret/go-functionalish/result"
 )
 
