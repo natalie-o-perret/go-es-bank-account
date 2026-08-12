@@ -62,6 +62,8 @@ from it:
 - `result.Result` for accepted or rejected decisions
 - `option.Option` for optional withdrawal thresholds
 - `seq.Seq` to fold event history into aggregate state
+- `slice.Slice` for mapping, folding, and state-threaded `MapFold`
+- `kv.Seq2` to transform map-backed projections
 
 No framework, reflection, database, frontend toolchain, or runtime CDN is required.
 

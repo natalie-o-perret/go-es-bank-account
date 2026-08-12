@@ -2,13 +2,13 @@
 package app
 
 import (
-	"cmp"
-	"slices"
 	"sync"
 	"time"
 
 	bank "github.com/natalie-o-perret/go-es-bank-account/features/bank/domain"
+	"github.com/natalie-o-perret/go-functionalish/kv"
 	"github.com/natalie-o-perret/go-functionalish/result"
+	"github.com/natalie-o-perret/go-functionalish/slice"
 )
 
 // Transaction is a signed ledger row with its resulting balance.
@@ -80,7 +80,7 @@ func (s *Store) Execute(accountID string, command bank.Command) result.Result[Ex
 	if !exists {
 		account = Account{ID: accountID}
 	}
-	for _, pair := range bank.EvolveWithStates(initial, events) {
+	account = slice.FromSlice(bank.EvolveWithStates(initial, events)).Fold(account, func(account Account, pair bank.EventState) Account {
 		account.Balance = pair.State.Balance
 		account.Closed = pair.State.Closed
 		switch pair.Event.Type {
@@ -94,7 +94,8 @@ func (s *Store) Execute(accountID string, command bank.Command) result.Result[Ex
 			})
 		case bank.Closed:
 		}
-	}
+		return account
+	})
 	s.accounts[accountID] = account
 
 	commit := Commit{Stream: "BankAccount-" + accountID, Events: events}
@@ -120,16 +121,13 @@ func (s *Store) Account(accountID string) Account {
 func (s *Store) Accounts() []AccountSummary {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	summaries := make([]AccountSummary, 0, len(s.accounts))
-	for _, account := range s.accounts {
-		summaries = append(summaries, AccountSummary{
+	return kv.Of(s.accounts).Values().Map(func(account Account) AccountSummary {
+		return AccountSummary{
 			ID: account.ID, Balance: account.Balance, Closed: account.Closed,
-		})
-	}
-	slices.SortFunc(summaries, func(a, b AccountSummary) int {
-		return cmp.Compare(a.ID, b.ID)
-	})
-	return summaries
+		}
+	}).SortBy(func(account AccountSummary) string {
+		return account.ID
+	}).ToSlice()
 }
 
 // Events returns a copy of one account's source-of-truth history.
@@ -143,11 +141,7 @@ func (s *Store) Events(accountID string) []bank.Event {
 func (s *Store) Commits() []Commit {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	commits := make([]Commit, len(s.commits))
-	for i, commit := range s.commits {
-		commits[i] = copyCommit(commit)
-	}
-	return commits
+	return slice.FromSlice(s.commits).Map(copyCommit).ToSlice()
 }
 
 func prepend(items []Transaction, item Transaction) []Transaction {

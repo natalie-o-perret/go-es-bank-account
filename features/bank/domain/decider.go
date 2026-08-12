@@ -3,6 +3,7 @@ package domain
 import (
 	"github.com/natalie-o-perret/go-functionalish/result"
 	"github.com/natalie-o-perret/go-functionalish/seq"
+	"github.com/natalie-o-perret/go-functionalish/slice"
 )
 
 // Evolve applies an event without validating history.
@@ -41,13 +42,11 @@ type EventState struct {
 
 // EvolveWithStates applies events in order and returns each post-event state.
 func EvolveWithStates(initial State, events []Event) []EventState {
-	pairs := make([]EventState, 0, len(events))
-	state := initial
-	for _, event := range events {
+	pairs, _ := slice.FromSlice(events).MapFold(initial, func(state State, event Event) (EventState, State) {
 		state = Evolve(state, event)
-		pairs = append(pairs, EventState{Event: event, State: state})
-	}
-	return pairs
+		return EventState{Event: event, State: state}, state
+	})
+	return pairs.ToSlice()
 }
 
 // Decide validates a command and returns the events it should emit.

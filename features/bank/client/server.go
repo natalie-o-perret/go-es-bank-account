@@ -16,6 +16,7 @@ import (
 	"github.com/natalie-o-perret/go-es-bank-account/features/bank/app"
 	bank "github.com/natalie-o-perret/go-es-bank-account/features/bank/domain"
 	"github.com/natalie-o-perret/go-functionalish/option"
+	"github.com/natalie-o-perret/go-functionalish/slice"
 )
 
 //go:embed static/*
@@ -88,13 +89,11 @@ type commandResponse struct {
 }
 
 func (s server) getAccounts(w http.ResponseWriter, _ *http.Request) {
-	accounts := s.store.Accounts()
-	response := make([]accountSummaryResponse, 0, len(accounts))
-	for _, account := range accounts {
-		response = append(response, accountSummaryResponse{
+	response := slice.FromSlice(s.store.Accounts()).Map(func(account app.AccountSummary) accountSummaryResponse {
+		return accountSummaryResponse{
 			ID: account.ID, Balance: account.Balance.String(), Closed: account.Closed,
-		})
-	}
+		}
+	}).ToSlice()
 	writeJSON(w, http.StatusOK, response)
 }
 
@@ -108,11 +107,7 @@ func (s server) getAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s server) getCommits(w http.ResponseWriter, _ *http.Request) {
-	commits := s.store.Commits()
-	response := make([]commitResponse, 0, len(commits))
-	for _, commit := range commits {
-		response = append(response, commitToResponse(commit))
-	}
+	response := slice.FromSlice(s.store.Commits()).Map(commitToResponse).ToSlice()
 	writeJSON(w, http.StatusOK, response)
 }
 
@@ -187,23 +182,17 @@ func validAccountID(accountID string) bool {
 	if strings.TrimSpace(accountID) == "" || utf8.RuneCountInString(accountID) > 80 {
 		return false
 	}
-	for _, r := range accountID {
-		if !unicode.IsPrint(r) {
-			return false
-		}
-	}
-	return true
+	return strings.IndexFunc(accountID, func(r rune) bool { return !unicode.IsPrint(r) }) == -1
 }
 
 func accountToResponse(account app.Account) accountResponse {
-	transactions := make([]transactionResponse, 0, len(account.Transactions))
-	for _, transaction := range account.Transactions {
-		transactions = append(transactions, transactionResponse{
+	transactions := slice.FromSlice(account.Transactions).Map(func(transaction app.Transaction) transactionResponse {
+		return transactionResponse{
 			At:      transaction.At.Format(time.RFC3339Nano),
 			Amount:  transaction.Amount.String(),
 			Balance: transaction.Balance.String(),
-		})
-	}
+		}
+	}).ToSlice()
 	return accountResponse{
 		ID:           account.ID,
 		Balance:      account.Balance.String(),
@@ -213,8 +202,7 @@ func accountToResponse(account app.Account) accountResponse {
 }
 
 func commitToResponse(commit app.Commit) commitResponse {
-	events := make([]eventResponse, 0, len(commit.Events))
-	for _, event := range commit.Events {
+	events := slice.FromSlice(commit.Events).Map(func(event bank.Event) eventResponse {
 		response := eventResponse{
 			Type: event.Type,
 			At:   event.At.Format(time.RFC3339Nano),
@@ -222,8 +210,8 @@ func commitToResponse(commit app.Commit) commitResponse {
 		if event.Type != bank.Closed {
 			response.Amount = event.Amount.String()
 		}
-		events = append(events, response)
-	}
+		return response
+	}).ToSlice()
 	return commitResponse{Stream: commit.Stream, Events: events}
 }
 
