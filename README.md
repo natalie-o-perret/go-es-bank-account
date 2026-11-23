@@ -9,11 +9,11 @@ and a dependency-free browser UI.
 
 ## Run
 
-The project uses Go 1.27 generic methods through [`go-functionalish`][library].
-Until Go 1.27 is released, select Go 1.27 RC2 explicitly:
+The project requires Go 1.27 or newer through [`go-functionalish`][library].
+Use the latest patched stable Go release:
 
 ```sh
-GOTOOLCHAIN=go1.27rc2 go run ./cmd/esbank
+go run ./cmd/esbank
 ```
 
 Open <http://localhost:8080>. Use `-addr` to choose another listen address.
@@ -115,8 +115,8 @@ sequenceDiagram
 ## Test
 
 ```sh
-GOTOOLCHAIN=go1.27rc2 go test -race ./...
-GOTOOLCHAIN=go1.27rc2 go vet ./...
+go test -race ./...
+go vet ./...
 ```
 
 The tests port the original event and state scenarios, then add projection,
